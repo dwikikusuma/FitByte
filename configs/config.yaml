@@ -1,0 +1,12 @@
+app:
+  port: 8081
+
+database:
+  host: 127.0.0.1
+  port: 3307
+  username: user
+  password: password
+  dbname: fitByte
+
+secret:
+  jwt_secret: "secret"
