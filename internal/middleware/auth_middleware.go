@@ -39,6 +39,7 @@ func AuthMiddleware(secretKey string) gin.HandlerFunc {
 			return
 		}
 
+		log.Logger.Info().Float64("user_id", claims.UserID).Msg("Authenticated request")
 		c.Set("user_id", claims.UserID)
 		c.Next()
 	}
