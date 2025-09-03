@@ -16,5 +16,5 @@ func GenerateJWTToken(userID uint, email, secretKey string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return token, err
+	return token, nil
 }
