@@ -1,6 +1,8 @@
 package handlers
 
 import (
+	"FitByte/configs"
+	"FitByte/internal/middleware"
 	"FitByte/internal/models"
 	"FitByte/internal/service"
 	"errors"
@@ -12,21 +14,31 @@ import (
 )
 
 type UserHandler struct {
-	Engine  *gin.Engine
-	UserSvc service.UserService
+	Engine    *gin.Engine
+	AppConfig configs.Config
+	UserSvc   service.UserService
 }
 
-func NewUserHandler(engine *gin.Engine, userService service.UserService) *UserHandler {
+func NewUserHandler(engine *gin.Engine, appConfig configs.Config, userService service.UserService) *UserHandler {
 	return &UserHandler{
-		Engine:  engine,
-		UserSvc: userService,
+		Engine:    engine,
+		AppConfig: appConfig,
+		UserSvc:   userService,
 	}
 }
 
 func (h *UserHandler) SetupRoutes() {
+	// Public routes
 	routes := h.Engine.Group("/user")
+	routes.Use(middleware.RequestLogger())
 	routes.POST("register", h.Register)
-	routes.GET("health-check", h.pong)
+	routes.POST("login", h.Login)
+	routes.GET("ping", h.pong)
+
+	// Protected routes
+	privateRoutes := h.Engine.Group("/user")
+	privateRoutes.Use(middleware.AuthMiddleware(h.AppConfig.Secret.JWTSecret))
+	privateRoutes.GET("private-ping", h.pong)
 }
 
 func (h *UserHandler) pong(c *gin.Context) {
@@ -44,7 +56,7 @@ func (h *UserHandler) Register(c *gin.Context) {
 		return
 	}
 
-	err = h.UserSvc.Register(ctx, model)
+	response, err := h.UserSvc.Register(ctx, model)
 	if err != nil {
 		if errors.Is(customErrors.ErrUserAlreadyExists, err) {
 			c.JSON(http.StatusConflict, gin.H{"error": err.Error()})
@@ -54,5 +66,32 @@ func (h *UserHandler) Register(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusCreated, gin.H{"message": "user created successfully"})
+	c.JSON(http.StatusCreated, gin.H{"email": response.Email, "token": response.Token})
+}
+
+func (h *UserHandler) Login(c *gin.Context) {
+	var model models.User
+	ctx := c.Request.Context()
+
+	err := c.ShouldBindJSON(&model)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	token, err := h.UserSvc.Login(ctx, model)
+	if err != nil {
+		if errors.Is(err, customErrors.ErrInvalidCredentials) {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+			return
+		} else if errors.Is(err, customErrors.ErrorUserNotFound) {
+			c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+			return
+		}
+
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"token": token})
 }

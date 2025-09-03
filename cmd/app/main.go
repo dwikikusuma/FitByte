@@ -4,7 +4,6 @@ import (
 	"FitByte/configs"
 	"FitByte/internal/handlers"
 	"FitByte/internal/infrastructure"
-	"FitByte/internal/middleware"
 	"FitByte/internal/repositories"
 	"FitByte/internal/service"
 
@@ -26,11 +25,10 @@ func main() {
 
 	r := gin.Default()
 	r.Use(gin.Recovery())
-	r.Use(middleware.RequestLogger())
 
 	userRepo := repositories.NewUserRepository(db)
-	userService := service.NewUserService(userRepo)
-	userHandler := handlers.NewUserHandler(r, userService)
+	userService := service.NewUserService(appConfig, userRepo)
+	userHandler := handlers.NewUserHandler(r, appConfig, userService)
 	userHandler.SetupRoutes()
 
 	log.Logger.Info().Str("port", appConfig.App.Port).Msg("Starting server")
