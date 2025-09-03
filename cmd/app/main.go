@@ -13,8 +13,6 @@ import (
 )
 
 func main() {
-	r := gin.Default()
-
 	log.InitLogger()
 
 	appConfig := configs.LoadConfig(
@@ -22,12 +20,19 @@ func main() {
 		configs.WithConfigFile("config"),
 		configs.WithConfigType("yaml"),
 	)
+
 	db := infrastructure.InitDB(appConfig)
 
+	r := gin.Default()
+	r.Use(gin.Recovery())
+
 	userRepo := repositories.NewUserRepository(db)
-	userService := service.NewUserService(userRepo)
-	userHandler := handlers.NewUserHandler(r, userService)
+	userService := service.NewUserService(appConfig, userRepo)
+	userHandler := handlers.NewUserHandler(r, appConfig, userService)
 	userHandler.SetupRoutes()
 
-	_ = r.Run(":" + appConfig.App.Port)
+	log.Logger.Info().Str("port", appConfig.App.Port).Msg("Starting server")
+	if err := r.Run(":" + appConfig.App.Port); err != nil {
+		log.Logger.Fatal().Err(err).Msg("Failed to start server")
+	}
 }
