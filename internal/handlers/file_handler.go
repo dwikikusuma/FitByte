@@ -23,7 +23,7 @@ func NewFileHandler(engine *gin.Engine, appConfig configs.Config, fileService se
 }
 
 func (h *FileHandler) SetupRoutes() {
-	routes := h.Engine.Group("file")
+	routes := h.Engine.Group("/file")
 	routes.Use(middleware.RequestLogger())
 	routes.Use(middleware.AuthMiddleware(h.AppConfig.Secret.JWTSecret))
 	routes.POST("upload", h.Upload)
