@@ -1,17 +1,16 @@
 version: "3.8"
 services:
-  mysql:
-    image: mysql:8.0
-    container_name: fitByte-mysql
+  postgres:
+    image: postgres:15
+    container_name: fitByte-postgres
     environment:
-      MYSQL_ROOT_PASSWORD: rootpassword
-      MYSQL_DATABASE: fitByte
-      MYSQL_USER: user
-      MYSQL_PASSWORD: password
+      POSTGRES_DB: fitByte
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
     ports:
-      - "3307:3306"
+      - "5433:5432"
     volumes:
-      - forum_mysql_data:/var/lib/mysql
+      - fitByte_data:/var/lib/postgresql/data
 
 volumes:
-  forum_mysql_data:
+  fitByte_data:
