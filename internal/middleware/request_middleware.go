@@ -41,5 +41,4 @@ func RequestLogger() gin.HandlerFunc {
 			logger.Info().Msg("request completed successfully")
 		}
 	}
-
 }

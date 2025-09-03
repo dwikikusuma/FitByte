@@ -43,10 +43,10 @@ func AuthMiddleware(secretKey string) gin.HandlerFunc {
 			return
 		}
 
+		currentTime := time.Now()
 		c.Set("user_id", userID)
 
 		currentUserID := c.GetFloat64("user_id")
-		currentTime := time.Now()
 
 		c.Next()
 
