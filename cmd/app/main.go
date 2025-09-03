@@ -22,6 +22,7 @@ func main() {
 	)
 
 	db := infrastructure.InitDB(appConfig)
+	minioClient := infrastructure.InitMinioStorage(appConfig)
 
 	r := gin.Default()
 	r.Use(gin.Recovery())
@@ -30,6 +31,12 @@ func main() {
 	userService := service.NewUserService(appConfig, userRepo)
 	userHandler := handlers.NewUserHandler(r, appConfig, userService)
 	userHandler.SetupRoutes()
+
+	minioRepo := repositories.NewMinoRepository(minioClient)
+	fileRepo := repositories.NewFileRepository(db)
+	fileService := service.NewFileService(fileRepo, minioRepo)
+	fileHandler := handlers.NewFileHandler(r, appConfig, fileService)
+	fileHandler.SetupRoutes()
 
 	log.Logger.Info().Str("port", appConfig.App.Port).Msg("Starting server")
 	if err := r.Run(":" + appConfig.App.Port); err != nil {
