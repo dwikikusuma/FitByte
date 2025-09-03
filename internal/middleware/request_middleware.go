@@ -33,6 +33,10 @@ func RequestLogger() gin.HandlerFunc {
 			Dur("latency", latency).
 			Logger()
 
+		if userID, exists := c.Get("user_id"); exists {
+			logger.Info().Interface("user_id", userID).Msg("request processed")
+		}
+
 		if status >= 500 {
 			logger.Error().Msg("request completed with server error")
 		} else if status >= 400 {

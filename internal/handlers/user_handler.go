@@ -29,8 +29,9 @@ func NewUserHandler(engine *gin.Engine, appConfig configs.Config, userService se
 
 func (h *UserHandler) SetupRoutes() {
 	// Public routes
+	h.Engine.Use(middleware.RequestLogger())
+
 	routes := h.Engine.Group("/user")
-	routes.Use(middleware.RequestLogger())
 	routes.POST("register", h.Register)
 	routes.POST("login", h.Login)
 	routes.GET("ping", h.pong)

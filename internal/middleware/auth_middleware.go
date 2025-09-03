@@ -2,11 +2,16 @@ package middleware
 
 import (
 	"FitByte/pkg/log"
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
 	"strings"
-	"time"
 )
+
+type AppClaims struct {
+	UserID float64 `json:"user_id"`
+	jwt.RegisteredClaims
+}
 
 func AuthMiddleware(secretKey string) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -19,7 +24,12 @@ func AuthMiddleware(secretKey string) gin.HandlerFunc {
 		}
 
 		tokenString := partedHeader[1]
-		token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+		claims := &AppClaims{}
+
+		token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
+			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+				return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
+			}
 			return []byte(secretKey), nil
 		})
 
@@ -29,44 +39,7 @@ func AuthMiddleware(secretKey string) gin.HandlerFunc {
 			return
 		}
 
-		claims, ok := token.Claims.(jwt.MapClaims)
-		if !ok {
-			log.Logger.Error().Msg("Unauthorized: Invalid token claims")
-			c.AbortWithStatusJSON(401, gin.H{"error": "Unauthorized"})
-			return
-		}
-
-		userID, ok := claims["user_id"].(float64)
-		if !ok {
-			log.Logger.Error().Msg("Unauthorized: user_id claim is invalid or missing")
-			c.AbortWithStatusJSON(401, gin.H{"error": "Unauthorized"})
-			return
-		}
-
-		currentTime := time.Now()
-		c.Set("user_id", userID)
-
-		currentUserID := c.GetFloat64("user_id")
-
+		c.Set("user_id", claims.UserID)
 		c.Next()
-
-		latency := time.Since(currentTime)
-		status := c.Writer.Status()
-		logger := log.Logger.With().
-			Float64("user_id", currentUserID).
-			Str("method", c.Request.Method).
-			Str("path", c.Request.URL.Path).
-			Int("status", status).
-			Str("client_ip", c.ClientIP()).
-			Dur("latency", latency).
-			Logger()
-
-		if status >= 500 {
-			logger.Error().Msg("request completed with server error")
-		} else if status >= 400 {
-			logger.Warn().Msg("request completed with client error")
-		} else {
-			logger.Info().Msg("request completed successfully")
-		}
 	}
 }
