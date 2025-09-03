@@ -36,7 +36,14 @@ func AuthMiddleware(secretKey string) gin.HandlerFunc {
 			return
 		}
 
-		c.Set("user_id", claims["user_id"].(float64))
+		userID, ok := claims["user_id"].(float64)
+		if !ok {
+			log.Logger.Error().Msg("Unauthorized: user_id claim is invalid or missing")
+			c.AbortWithStatusJSON(401, gin.H{"error": "Unauthorized"})
+			return
+		}
+
+		c.Set("user_id", userID)
 
 		currentUserID := c.GetFloat64("user_id")
 		currentTime := time.Now()
