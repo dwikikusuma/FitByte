@@ -1,10 +1,29 @@
 package models
 
-import "gorm.io/gorm"
+import (
+	"mime/multipart"
 
+	"gorm.io/gorm"
+)
+
+// File Database Schema for File
 type File struct {
 	gorm.Model
-	UserID   uint   `gorm:"column:user_id"`
+	UserID   int64  `gorm:"column:user_id"`
 	FileName string `gorm:"column:file_name"`
 	FileURL  string `gorm:"column:file_url"`
+}
+
+//func (f *File) GenerateFileURL(fileName string) string {
+//	// In a real application, this would generate a full URL based on your storage solution
+//	return "https://your-storage-service.com/" +
+//}
+
+// Schema for Upload File
+type UploadFile struct {
+	FileName    string
+	FileData    multipart.File
+	Size        int64
+	ContentType string
+	FilePath    string
 }

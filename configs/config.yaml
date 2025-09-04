@@ -16,3 +16,4 @@ minio:
   access_key_id: "minioadmin"
   secret_access_key: "minioadmin"
   use_ssl: false
+  bucket: "fitbyte"

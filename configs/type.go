@@ -28,4 +28,5 @@ type MinioConfig struct {
 	AccessKeyID     string `mapstructure:"access_key_id" validate:"required"`
 	SecretAccessKey string `mapstructure:"secret_access_key" validate:"required"`
 	UseSSL          bool   `mapstructure:"use_ssl"`
+	Bucket          string `mapstructure:"bucket" validate:"required"`
 }
