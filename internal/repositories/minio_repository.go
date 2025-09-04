@@ -17,7 +17,7 @@ type minioRepository struct {
 	bucketName string
 }
 
-func NewMinoRepository(storageClient *minio.Client, bucketName string) MinioRepository {
+func NewMinioRepository(storageClient *minio.Client, bucketName string) MinioRepository {
 	return &minioRepository{
 		client:     storageClient,
 		bucketName: bucketName,

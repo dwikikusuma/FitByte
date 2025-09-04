@@ -1,2 +1,2 @@
--- Drop users table
+-- Drop files table
 DROP TABLE IF EXISTS files;

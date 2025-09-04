@@ -34,7 +34,7 @@ func main() {
 	userHandler := handlers.NewUserHandler(r, appConfig, userService)
 	userHandler.SetupRoutes()
 
-	minioRepo := repositories.NewMinoRepository(minioClient, appConfig.Minio.Bucket)
+	minioRepo := repositories.NewMinioRepository(minioClient, appConfig.Minio.Bucket)
 	fileRepo := repositories.NewFileRepository(db)
 	fileService := service.NewFileService(fileRepo, minioRepo)
 	fileHandler := handlers.NewFileHandler(r, appConfig, fileService)
